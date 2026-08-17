@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define likely(a) __builtin_expect(!!(a), 1)
 #define unlikely(a) __builtin_expect(!!(a), 0)
 
 typedef struct {
@@ -31,7 +30,7 @@ static inline char peek(void) {
 static inline void skip_whitespace(void) {
     while (1) {
         char c = peek();
-        if (c == ' '|| c == '\t' || c == '\r') {
+        if (c == ' '|| c == '\t' || c == '\r') { // Purpose fallthorugh to lex_eof
             S.cursor++;
             S.column++;
         } else if (c == '\n') {

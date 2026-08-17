@@ -1,0 +1,1 @@
+Infix notation is where operators are between operands, whereas postfix is where operators trail after operands, this project translates infix to postfix and evaluates the generated postfix expressions.
