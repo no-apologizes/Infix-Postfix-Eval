@@ -1,0 +1,26 @@
+cmake_minimum_required(VERSION 3.20)
+project(infix_postfix_eval C)
+
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
+add_executable(infix_postfix_eval
+        main.c
+        lexer.c
+)
+
+target_compile_options(infix_postfix_eval PRIVATE
+        -Wall -Wextra -Wshadow -Wconversion -Wnull-dereference
+        $<$<CONFIG:Debug>:-O0 -ggdb3>
+        $<$<CONFIG:Release>:-O2>
+)
+
+target_include_directories(infix_postfix_eval PRIVATE
+        ${CMAKE_SOURCE_DIR}/Headers
+)
+
+target_link_libraries(infix_postfix_eval PRIVATE m) # m is fast math

@@ -4,10 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define likely(a) __builtin_expect(!!(a), 1)
 #define unlikely(a) __builtin_expect(!!(a), 0)
 
 typedef struct {
     const char *cursor;
+    int64_t line;
     int64_t column;
 } LexerState;
 
@@ -18,8 +20,16 @@ static bool table_initialized = false;
 
 static inline char advance(void) {
     char c = *S.cursor;
-    S.cursor++;
-    S.column++;
+    if (likely((c != '\0'))) {
+        S.cursor++;
+        S.column++;
+        if (c == '\n') {
+            S.line++;
+            S.column = 1;
+        }
+    } else {
+        S.column++;
+    }
     return c;
 }
 
@@ -34,8 +44,9 @@ static inline void skip_whitespace(void) {
             S.cursor++;
             S.column++;
         } else if (c == '\n') {
-            fprintf(stderr, "One line brodie");
-            exit(EXIT_FAILURE);
+            S.cursor++;
+            S.line++;
+            S.column = 1;
         } else {
             break;
         }}
@@ -43,6 +54,7 @@ static inline void skip_whitespace(void) {
 
 void lexer_init(const char *source) {
     S.cursor = source;
+    S.line = 1;
     S.column = 1;
 }
 
@@ -61,6 +73,9 @@ Token lexer_next_token(void) {
         dispatch_table[')'] = &&lex_rparen;
 
         dispatch_table['^'] = &&lex_exp;
+
+        dispatch_table['*'] = &&lex_mul;
+        dispatch_table['/'] = &&lex_div;
         dispatch_table['%'] = &&lex_rem;
 
         dispatch_table['+'] = &&lex_plus;
@@ -69,11 +84,13 @@ Token lexer_next_token(void) {
         dispatch_table['\0'] = &&lex_eof;
 
         table_initialized = true;
-    } 
+    }
     skip_whitespace();
 
     Token token;
+    token.line = S.line;
     token.column = S.column;
+    token.value = 0; // Initialize to 0
 
     char c = peek();
 
@@ -135,15 +152,21 @@ lex_exp: {
     return token;
 }
 
-lex_rem: {
+lex_mul: {
     advance();
-    token.type = TOKEN_REM;
+    token.type = TOKEN_MUL;
     return token;
 }
 
-lex_plus: {
+lex_div: {
     advance();
-    token.type = TOKEN_PLUS;
+    token.type = TOKEN_DIV;
+    return token;
+}
+
+lex_rem: {
+    advance();
+    token.type = TOKEN_REM;
     return token;
 }
 
@@ -153,8 +176,14 @@ lex_minus: {
     return token;
 }
 
-lex_unknown: { // Nope you don't get good errors
-    fprintf(stderr, "Invalid character");
+lex_plus: {
+    advance();
+    token.type = TOKEN_PLUS;
+    return token;
+}
+
+lex_unknown: {
+    fprintf(stderr, "Invalid character, Column: %2ld", token.column);
     exit(EXIT_FAILURE);
 }
 

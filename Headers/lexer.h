@@ -3,8 +3,8 @@
 
 typedef enum {
     TOKEN_NUM_LIT,
-    TOKEN_MINUS, // '+' for lexer
-    TOKEN_PLUS,  // '-' for lexer
+    TOKEN_MINUS, // '-' for lexer
+    TOKEN_PLUS,  // '+' for lexer
 
     // Grouped in terms of precedence
     TOKEN_LPAREN,
@@ -17,7 +17,6 @@ typedef enum {
     TOKEN_NEG,  // Negation: -a
 
     TOKEN_IMPLICIT_MUL, // 2()
-
     TOKEN_MUL, // a * a
     TOKEN_DIV, // a / a
     TOKEN_REM, // a % a
@@ -30,7 +29,11 @@ typedef enum {
 } TokenType;
 
 typedef struct {
+    int64_t value; // No tagged union for values
     TokenType type;
-    int64_t value;
+    int64_t line;
     int64_t column;
 } Token;
+
+void lexer_init(const char *source);
+Token lexer_next_token(void);
