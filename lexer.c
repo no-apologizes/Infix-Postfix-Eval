@@ -18,6 +18,8 @@ static LexerState S;
 static const void *dispatch_table[256];
 static bool table_initialized = false;
 
+int64_t total_tokens = 0;
+
 static inline char advance(void) {
     char c = *S.cursor;
     if (likely((c != '\0'))) {
@@ -56,6 +58,7 @@ void lexer_init(const char *source) {
     S.cursor = source;
     S.line = 1;
     S.column = 1;
+    total_tokens = 0;
 }
 
 Token lexer_next_token(void) {
@@ -119,6 +122,7 @@ lex_num_lit: {
     }
     token.type = TOKEN_NUM_LIT;
     token.value = value;
+    total_tokens++;
     return token;
 }
 
@@ -131,54 +135,63 @@ lex_dot: {
         exit(EXIT_FAILURE);
     }
     token.type = TOKEN_ROOT;
+    total_tokens++;
     return token;
 }
 
 lex_lparen: {
     advance();
     token.type = TOKEN_LPAREN;
+    total_tokens++;
     return token;
 }
 
 lex_rparen: {
     advance();
     token.type = TOKEN_RPAREN;
+    total_tokens++;
     return token;
 }
 
 lex_exp: {
     advance();
     token.type = TOKEN_EXP;
+    total_tokens++;
     return token;
 }
 
 lex_mul: {
     advance();
     token.type = TOKEN_MUL;
+    total_tokens++;
     return token;
 }
 
 lex_div: {
     advance();
     token.type = TOKEN_DIV;
+    total_tokens++;
     return token;
 }
 
 lex_rem: {
     advance();
     token.type = TOKEN_REM;
+    total_tokens++;
     return token;
 }
 
 lex_minus: {
     advance();
     token.type = TOKEN_MINUS;
+    total_tokens++;
     return token;
 }
 
 lex_plus: {
     advance();
     token.type = TOKEN_PLUS;
+    total_tokens++;
     return token;
 }
 
@@ -189,6 +202,6 @@ lex_unknown: {
 
 lex_eof: {
     token.type = TOKEN_EOF;
+    total_tokens++;
     return token;
-}
-}
+}   }

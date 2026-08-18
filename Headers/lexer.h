@@ -1,6 +1,8 @@
 #pragma once
 #include <stdint.h>
 
+extern int64_t total_tokens;
+
 typedef enum {
     TOKEN_NUM_LIT,
     TOKEN_MINUS, // '-' for lexer
@@ -25,7 +27,9 @@ typedef enum {
     TOKEN_ADD, // a + a
 
     TOKEN_UNKOWN,
-    TOKEN_EOF
+    TOKEN_EOF,
+
+    TOKEN_COUNT
 } TokenType;
 
 typedef struct {
