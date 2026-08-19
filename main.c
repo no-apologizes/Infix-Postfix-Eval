@@ -31,7 +31,7 @@ Token* lexical_analysis(const char *c) {
         t = lexer_next_token();
         output[current_token++] = t;
 
-        printf("Type: %2d, Column: %2ld, Line: %2ld, Value: %ld\n", t.type, t.column, t.line, t.value);
+        printf("Type: %2d, Column: %2ld, Line: %2ld, Value: %g\n", t.type, t.column, t.line, t.value);
     } while (t.type != TOKEN_EOF && current_token < token_count);
     printf("\nTotal Tokens: %2ld\n", total_tokens);
 
@@ -59,7 +59,7 @@ static char *read_file_contents(const char *path) {
     const size_t file_size = (size_t)raw_size;
     rewind(file);
 
-    char *buffer = malloc(file_size);
+    char *buffer = malloc(file_size + 1);
     if (!buffer) { fprintf(stderr, "Failed to allocate memory for file buffer"); exit(EXIT_FAILURE); }
 
     const size_t bytes_read = fread(buffer, sizeof(char), file_size, file);
@@ -75,7 +75,7 @@ static inline void print_tokens(Token *t, int64_t tokens) {
     if (tokens < 0) { tokens = total_tokens; }
     while (current_token_num < tokens) {
         current_token = t[current_token_num];
-        printf("Type: %2d, Column: %2ld, Line: %2ld, Value: %ld\n", current_token.type, current_token.column, current_token.line, current_token.value);
+        printf("Type: %2d, Column: %2ld, Line: %2ld, Value: %g\n", current_token.type, current_token.column, current_token.line, current_token.value);
         current_token_num++;
     }
     printf("\n");

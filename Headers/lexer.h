@@ -1,5 +1,8 @@
 #pragma once
 #include <stdint.h>
+#include <assert.h>
+#include <limits.h>
+static_assert(sizeof(double) * CHAR_BIT == 64, "Double must be 64 bits");
 
 extern int64_t total_tokens;
 
@@ -33,7 +36,7 @@ typedef enum {
 } TokenType;
 
 typedef struct {
-    int64_t value; // No tagged union for values
+    double value;
     TokenType type;
     int64_t line;
     int64_t column;

@@ -1,5 +1,6 @@
 #include "Headers/lexer.h"
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,6 +31,7 @@ static inline char advance(void) {
             S.column = 1;
         }
     } else {
+        //S.cursor++; // Added
         S.column++;
     }
     return c;
@@ -63,7 +65,7 @@ void lexer_init(const char *source) {
 
 Token lexer_next_token(void) {
     if (unlikely(!table_initialized)) {
-        for (int64_t i = 0; i < 256; i++) {
+        for (size_t i = 0; i < 256; i++) {
             if (i >= '0' && i <= '9') {
                 dispatch_table[i] = &&lex_num_lit;
             } else {
@@ -100,24 +102,35 @@ Token lexer_next_token(void) {
     goto *dispatch_table[(unsigned char)c];
 
 lex_num_lit: {
-    int64_t value = 0;
+    double value = 0;
     while (1) {
         char next = peek();
         if (next >= '0' && next <= '9') {
-            int64_t digit = next - '0';
-            if (value > (9223372036854775807 - digit) / 10) {
-                fprintf(stderr, "Number literal too large");
-                exit(EXIT_FAILURE);
-            }
-            value = value * 10 + digit;
+            value = value * 10 + (next - '0');
             S.cursor++;
             S.column++;
         } else {
             break;
         }
     }
-    if (peek() == '.') {
-        fprintf(stderr, "Only 64-bit integers bucko");
+    if (peek() == '.' && S.cursor[1] >= '0' && S.cursor[1] <= '9') {
+        S.cursor++;
+        S.column++;
+        double divisor = 0.1;
+        while (1) {
+            char next = peek();
+            if (next >= '0' && next <= '9') {
+                value = value + (next - '0') * divisor;
+                divisor *= 0.1;
+                S.cursor++;
+                S.column++;
+            } else {
+                break;
+            }
+        }
+    }
+    if (unlikely(peek() == '.') && S.cursor[1] != '/') {
+        fprintf(stderr, "Leading period at position line %ld, column %ld", S.line, S.column);
         exit(EXIT_FAILURE);
     }
     token.type = TOKEN_NUM_LIT;
@@ -130,7 +143,28 @@ lex_dot: {
     if (S.cursor[1] == '/') { // Check for "./"
         advance();
         advance();
-    } else {
+    } else if (S.cursor[1] >= '0' && S.cursor[1] <= '9') {
+        S.cursor++;
+        S.column++;
+        double value = 0;
+        double divisor = 0.1;
+        while (1) {
+            char next = peek();
+            if (next >= '0' && next <= '9') {
+                value = value + (next - '0') * divisor;
+                divisor *= 0.1;
+                S.cursor++;
+                S.column++;
+            } else {
+                break;
+            }
+        }
+        token.type = TOKEN_NUM_LIT;
+        token.value = value;
+        total_tokens++;
+        return token;
+    }
+    else {
         fprintf(stderr, "Unexpected '.', did you mean './'?");
         exit(EXIT_FAILURE);
     }
