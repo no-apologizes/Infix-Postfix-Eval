@@ -46,6 +46,72 @@ void resolve_arity(Token *t, int64_t token_count) {
         }}
 }
 
+// Who pissed in your cornflakes?
+
+/*
+ * If prev: num_lit or rparen
+ * and current: num_lit, lparen, or root
+ * insert implicit_mul
+ */
+Token *resolve_imp_mul(Token *token, int64_t token_count, int64_t *out_count) {
+    if (token_count == 0) { fprintf(stderr, "0 tokens passed, lol.\n"); exit(EXIT_FAILURE);}
+    assert(token[token_count - 1].type == TOKEN_EOF); // Fail if last token isn't EOF
+    const uint64_t buffer_size = (sizeof(Token) * (unsigned long)token_count) * 2;
+    Token *output = malloc(buffer_size);
+    if (!output) { fprintf(stderr, "Failed to allocate memory for output stack\n"); exit(EXIT_FAILURE); }
+    if (output != NULL) { memset(output, 0, buffer_size); }
+
+    static void *dispatch_table[TOKEN_COUNT] = {
+        [TOKEN_NUM_LIT] = &&resolve_imp,
+        [TOKEN_PLUS] = &&do_nothing, [TOKEN_MINUS] = &&do_nothing,
+        [TOKEN_LPAREN] = &&resolve_imp,
+        [TOKEN_RPAREN] = &&do_nothing,
+        [TOKEN_ROOT] = &&resolve_imp, [TOKEN_EXP] = &&do_nothing,
+        [TOKEN_POS] = &&do_nothing, [TOKEN_NEG] = &&do_nothing,
+        [TOKEN_IMPLICIT_MUL] = &&do_implicit_mul, [TOKEN_MUL] = &&do_nothing, [TOKEN_DIV] = &&do_nothing, [TOKEN_REM] = &&do_nothing,
+        [TOKEN_SUB] = &&do_nothing, [TOKEN_ADD] = &&do_nothing,
+        [TOKEN_EOF] = &&do_eof,
+    };
+
+    int64_t i = 0;
+    TokenType preceding = TOKEN_COUNT;
+    TokenType current = token[i].type;
+    int64_t out_pos = 0; // How many tokens are in the output so far
+
+    goto *dispatch_table[current];
+
+resolve_imp: {
+    if (preceding == TOKEN_NUM_LIT || preceding == TOKEN_RPAREN) {
+        Token andie;
+        andie.type = TOKEN_IMPLICIT_MUL;
+        andie.line = token[i].line;
+        andie.column = token[i].column;
+        output[out_pos++] = andie;
+    }
+    output[out_pos++] = token[i]; // Return WHOLE token
+    preceding = current;
+    current = token[++i].type;
+    goto *dispatch_table[current];
+}
+
+do_implicit_mul: {
+    fprintf(stderr, "resolve_imp_mul was ran twice! No fun.\n");
+    exit(EXIT_FAILURE);
+}
+
+do_nothing: {
+    output[out_pos++] = token[i]; // Return WHOLE token
+    preceding = current;
+    current = token[++i].type;
+    goto *dispatch_table[current];
+}
+
+do_eof: {
+    output[out_pos++] = token[i]; // Return WHOLE token
+    *out_count = out_pos;
+    return output;
+}   }
+
 static inline void stack_push(TokenStack *s, Token t) {
     s->elements[++s->top] = t;
 }
@@ -95,16 +161,17 @@ static inline int64_t is_right_associative(TokenType t) {
  *
  * At the end of the expression, pop and print all operators on the stack. (No parentheses should remain.)
  */
-Token *shunting_yard(Token *tokens, int64_t token_count, int64_t *out_count) {
-    if (token_count == 0) { fprintf(stderr, "0 tokens passed, lol."); exit(EXIT_FAILURE);}
-    assert(tokens[token_count - 1].type == TOKEN_EOF); // Fail if last token isn't EOF
-    Token *output = malloc(sizeof(Token) * (unsigned long)token_count);
-    if (!output) { fprintf(stderr, "Failed to allocate memory for output stack"); exit(EXIT_FAILURE); }
-    if (output != NULL) { memset(output, 0, sizeof(Token) * (unsigned long)token_count); } // No parallelized for loops :(
+Token *shunting_yard(Token *token, int64_t token_count, int64_t *out_count) {
+    if (token_count == 0) { fprintf(stderr, "0 tokens passed, lol.\n"); exit(EXIT_FAILURE);}
+    assert(token[token_count - 1].type == TOKEN_EOF); // Fail if last token isn't EOF
+    const uint64_t buffer_size = sizeof(Token) * (unsigned long)token_count;
+    Token *output = malloc(buffer_size);
+    if (!output) { fprintf(stderr, "Failed to allocate memory for output stack\n"); exit(EXIT_FAILURE); }
+    if (output != NULL) { memset(output, 0, buffer_size); } // No parallelized for loops :(
     TokenStack op_stack;
-    op_stack.elements = malloc(sizeof(Token) * (unsigned long)token_count);
-    if (!op_stack.elements) { fprintf(stderr, "Failed to allocate memory for operator stack"); exit(EXIT_FAILURE); }
-    if (op_stack.elements != NULL) { memset(op_stack.elements, 0, sizeof(Token) * (unsigned long)token_count); }
+    op_stack.elements = malloc(buffer_size);
+    if (!op_stack.elements) { fprintf(stderr, "Failed to allocate memory for operator stack\n"); exit(EXIT_FAILURE); }
+    if (op_stack.elements != NULL) { memset(op_stack.elements, 0, buffer_size); }
     op_stack.top = -1;
 
     static void *dispatch_table[TOKEN_COUNT] = {
@@ -121,16 +188,16 @@ Token *shunting_yard(Token *tokens, int64_t token_count, int64_t *out_count) {
     int64_t i = 0;
     int64_t out_pos = 0; // How many tokens are in the output so far
 
-    goto *dispatch_table[tokens[i].type];
+    goto *dispatch_table[token[i].type];
 
 do_operand: {
-    output[out_pos++] = tokens[i]; // Write to output at current write pos and then advance it
+    output[out_pos++] = token[i]; // Write to output at current write pos and then advance it
     i++; // Look at next token
-    goto *dispatch_table[tokens[i].type];
+    goto *dispatch_table[token[i].type];
 }
 
 do_operator: {
-    TokenType current = tokens[i].type;
+    TokenType current = token[i].type;
     while (
         !stack_empty(&op_stack) &&
         // Check for a boundary marker, operators can't reach across them
@@ -143,15 +210,15 @@ do_operator: {
         output[out_pos++] = stack_pop(&op_stack);
     }
     // Now push current operator to wait its turn now that everything its gone
-    stack_push(&op_stack, tokens[i]);
+    stack_push(&op_stack, token[i]);
     i++;
-    goto *dispatch_table[tokens[i].type];
+    goto *dispatch_table[token[i].type];
 }
 
 do_lparen: {
-    stack_push(&op_stack, tokens[i]);
+    stack_push(&op_stack, token[i]);
     i++; // Look at next token
-    goto *dispatch_table[tokens[i].type];
+    goto *dispatch_table[token[i].type];
 }
 
 do_rparen: {
@@ -159,19 +226,19 @@ do_rparen: {
         output[out_pos++] = stack_pop(&op_stack);
     }
     if (stack_empty(&op_stack)) {
-        fprintf(stderr, "Mismatched Parentheses, missing '('?");
+        fprintf(stderr, "Mismatched Parentheses, missing '('?\n");
         exit(EXIT_FAILURE);
     }
     // Found '('
     stack_pop(&op_stack);
     i++;
-    goto *dispatch_table[tokens[i].type];
+    goto *dispatch_table[token[i].type];
 }
 
 do_eof: {
     while (!stack_empty(&op_stack)) {
         if (peek(&op_stack).type == TOKEN_LPAREN) {
-            fprintf(stderr, "Mismatched Parentheses, missing ')'?");
+            fprintf(stderr, "Mismatched Parentheses, missing ')'?\n");
             exit(EXIT_FAILURE);
         }
         output[out_pos++] = stack_pop(&op_stack);

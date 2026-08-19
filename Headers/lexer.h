@@ -38,8 +38,8 @@ typedef enum {
 typedef struct {
     double value;
     TokenType type;
-    int64_t line;
-    int64_t column;
+    uint16_t line;
+    uint16_t column;
 } Token;
 
 void lexer_init(const char *source);

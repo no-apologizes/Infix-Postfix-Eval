@@ -10,8 +10,8 @@
 
 typedef struct {
     const char *cursor;
-    int64_t line;
-    int64_t column;
+    uint16_t line;
+    uint16_t column;
 } LexerState;
 
 static LexerState S;
@@ -130,7 +130,7 @@ lex_num_lit: {
         }
     }
     if (unlikely(peek() == '.') && S.cursor[1] != '/') {
-        fprintf(stderr, "Leading period at position line %ld, column %ld", S.line, S.column);
+        fprintf(stderr, "Leading period at position line %d, column %d\n", S.line, S.column);
         exit(EXIT_FAILURE);
     }
     token.type = TOKEN_NUM_LIT;
@@ -165,7 +165,7 @@ lex_dot: {
         return token;
     }
     else {
-        fprintf(stderr, "Unexpected '.', did you mean './'?");
+        fprintf(stderr, "Unexpected '.', did you mean './'?\n");
         exit(EXIT_FAILURE);
     }
     token.type = TOKEN_ROOT;
@@ -230,7 +230,7 @@ lex_plus: {
 }
 
 lex_unknown: {
-    fprintf(stderr, "Invalid character, Column: %2ld", token.column);
+    fprintf(stderr, "Invalid character, Column: %d\n", token.column);
     exit(EXIT_FAILURE);
 }
 
