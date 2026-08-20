@@ -83,6 +83,7 @@ Token *resolve_imp_mul(Token *token, int64_t token_count, int64_t *out_count) {
 resolve_imp: {
     if (preceding == TOKEN_NUM_LIT || preceding == TOKEN_RPAREN) {
         Token andie;
+        andie.value = 0;
         andie.type = TOKEN_IMPLICIT_MUL;
         andie.line = token[i].line;
         andie.column = token[i].column;
@@ -243,6 +244,7 @@ do_eof: {
         }
         output[out_pos++] = stack_pop(&op_stack);
     }
+    output[out_pos++] = token[i]; // That's crazy
     free(op_stack.elements);
     *out_count = out_pos; // How many valid entries are in output, there may be discarded parentheses
     return output;

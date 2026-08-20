@@ -1,5 +1,6 @@
 #include "Headers/lexer.h"
 #include "Headers/parser.h"
+#include "Headers/eval.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -94,7 +95,7 @@ int main(const int argc, char **argv) {
     int64_t imp_count;
     printf("===== Imp Mul Resolvement =====\n\n");
     Token *imp = resolve_imp_mul(t, total_tokens, &imp_count);
-    free(t);
+    //free(t);
     print_tokens(imp, imp_count);
     printf("===== End of Imp Mul Resolvement =====\n\n");
     resolve_arity(imp, imp_count);
@@ -103,11 +104,14 @@ int main(const int argc, char **argv) {
     printf("===== End of Arity Resolvement =====\n\n");
     int64_t out_count;
     Token *postfix = shunting_yard(imp, imp_count, &out_count);
+    free(imp);
     printf("===== Postfix Conversion =====\n\n");
     print_tokens(postfix, out_count);
     printf("===== End of Postfix Conversion =====\n\n");
-    free(imp);
+    double result = evaluate_postfix_throwaway(postfix, t, out_count);
     free(postfix);
+
+    printf("Result: %g\n\n", result);
 
     return 0;
 }

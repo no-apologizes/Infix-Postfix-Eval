@@ -12,10 +12,11 @@ add_executable(infix_postfix_eval
         main.c
         lexer.c
         parser.c
+        eval.c
 )
 
 target_compile_options(infix_postfix_eval PRIVATE
-        -O3 -march=native -std=c17 -flto
+        -O0# -march=native -std=c17 -flto
         -Wall -Wextra -Wshadow -Wconversion -Wnull-dereference
 )
 
@@ -23,4 +24,4 @@ target_include_directories(infix_postfix_eval PRIVATE
         ${CMAKE_SOURCE_DIR}/Headers
 )
 
-target_link_libraries(infix_postfix_eval PRIVATE m) # m is fast math
+target_link_libraries(infix_postfix_eval PRIVATE m)
