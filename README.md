@@ -31,3 +31,6 @@ Debug:
 ./infix_postfix_eval <file> -d
 
 ```
+
+### AI Disclaimer:
+AI was used to find bugs and edge cases, all code was written by me, I can explain every line, AMA.
