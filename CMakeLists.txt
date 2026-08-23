@@ -16,7 +16,7 @@ add_executable(infix_postfix_eval
 )
 
 target_compile_options(infix_postfix_eval PRIVATE
-        -O0# -march=native -std=c17 -flto
+        -O3 -march=native -std=c17 -flto
         -Wall -Wextra -Wshadow -Wconversion -Wnull-dereference
 )
 
