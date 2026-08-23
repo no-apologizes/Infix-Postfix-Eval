@@ -25,7 +25,7 @@ cmake --build .
 ### Usage:
 
 ```
-./infix_postfix_eval <file>
+./infix_postfix_eval <file> // Or the provided 5thnm.exe
 
 Debug:
 ./infix_postfix_eval <file> -d
