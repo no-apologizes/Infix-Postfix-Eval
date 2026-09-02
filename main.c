@@ -1,7 +1,6 @@
 #include "Headers/lexer.h"
 #include "Headers/parser.h"
 #include "Headers/eval.h"
-#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,8 +8,9 @@
 #include <stdbool.h>
 
 #define unlikely(a) __builtin_expect(!!(a), 0)
+#define f_static_inline __attribute__((__always_inline__)) static inline
 
-Token* lexical_analysis(const char *c, bool dump_tokens) {
+static Token* lexical_analysis(const char *c, const bool dump_tokens) {
     if (unlikely(dump_tokens == true)) { printf("===== Lexical Analysis =====\n\n"); }
     printf("\nInfix Script:\n");
     printf("%s\n", c);
@@ -23,7 +23,7 @@ Token* lexical_analysis(const char *c, bool dump_tokens) {
     Token *output = malloc(sizeof(Token) * (unsigned long)total_tokens);
     if (!output) { fprintf(stderr, "Failed to allocate memory for output tokens\n"); exit(EXIT_FAILURE); }
     if (output != NULL) { memset(output, 0, sizeof(Token) * (unsigned long)total_tokens); }
-    int64_t token_count = total_tokens;
+    const int64_t token_count = total_tokens;
     lexer_init(c);
 
     int64_t current_token = 0;
@@ -36,12 +36,12 @@ Token* lexical_analysis(const char *c, bool dump_tokens) {
         if (unlikely(dump_tokens == true)) { printf("Type: %2d, Column: %2d, Line: %2d, Value: %g\n", t.type, t.column, t.line, t.value); }
     } while (t.type != TOKEN_EOF && current_token < token_count);
     if (unlikely(dump_tokens == true)) {
-        printf("\nTotal Tokens: %2ld\n", total_tokens);
+        printf("\nTotal Tokens: %2lld\n", total_tokens);
         printf("\n===== End of Lexical Analysis =====\n\n"); }
     return output;
 }
 
-static inline void print_actual_token(Token t) {
+f_static_inline void print_actual_token(const Token t) {
     char *space = " ";
     switch (t.type) {
         case TOKEN_NUM_LIT: printf("%g%s",t.value,  space); break;
@@ -67,7 +67,7 @@ static char *read_file_contents(const char *path) {
     }
 
     fseek(file, 0L, SEEK_END);
-    int64_t raw_size = ftell(file);
+    const int64_t raw_size = ftell(file);
     if (raw_size < 0) {
         fprintf(stderr, "Failed to determine file size for '%s'\n", path);
         fclose(file);
@@ -86,12 +86,11 @@ static char *read_file_contents(const char *path) {
     return buffer;
 }
 
-static inline void print_tokens(Token *t, int64_t tokens) {
+f_static_inline void print_tokens(const Token *t, int64_t tokens) {
     int64_t current_token_num = 0;
-    Token current_token;
     if (tokens < 0) { tokens = total_tokens; }
     while (current_token_num < tokens) {
-        current_token = t[current_token_num];
+        const Token current_token = t[current_token_num];
         printf("Type: %2d, Column: %2d, Line: %2d, Value: %g\n", current_token.type, current_token.column, current_token.line, current_token.value);
         current_token_num++;
     }

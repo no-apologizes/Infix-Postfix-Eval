@@ -7,6 +7,7 @@
 #include <string.h>
 
 #define likely(a) __builtin_expect(!!(a), 1)
+#define f_static_inline __attribute__((__always_inline__)) static inline
 
 typedef struct {
     Token *elements;
@@ -19,7 +20,7 @@ typedef struct {
  * Was the last token num_lit or rparen?
  * If yes, binary
  */
-void resolve_arity(Token *t, int64_t token_count) {
+void resolve_arity(Token *t, const int64_t token_count) {
     int64_t i = 0;
     TokenType preceding = TOKEN_COUNT;
     TokenType current = t[i].type;
@@ -56,7 +57,7 @@ void resolve_arity(Token *t, int64_t token_count) {
 Token *resolve_imp_mul(Token *token, int64_t token_count, int64_t *out_count) {
     if (token_count == 0) { fprintf(stderr, "0 tokens passed, lol.\n"); exit(EXIT_FAILURE);}
     assert(token[token_count - 1].type == TOKEN_EOF); // Fail if last token isn't EOF
-    const uint64_t buffer_size = (sizeof(Token) * (unsigned long)token_count) * 2;
+    const uint64_t buffer_size = sizeof(Token) * (unsigned long)token_count * 2;
     Token *output = malloc(buffer_size);
     if (!output) { fprintf(stderr, "Failed to allocate memory for output stack\n"); exit(EXIT_FAILURE); }
     if (output != NULL) { memset(output, 0, buffer_size); }
@@ -113,23 +114,23 @@ do_eof: {
     return output;
 }   }
 
-static inline void stack_push(TokenStack *s, Token t) {
+f_static_inline void stack_push(TokenStack *s, const Token t) {
     s->elements[++s->top] = t;
 }
 
-static inline Token stack_pop(TokenStack *s) {
+f_static_inline Token stack_pop(TokenStack *s) {
     return s->elements[s->top--];
 }
 
-static inline Token peek(TokenStack *s) {
+f_static_inline Token peek(const TokenStack *s) {
     return s->elements[s->top];
 }
 
-static inline int64_t stack_empty(TokenStack *s) {
+f_static_inline int64_t stack_empty(const TokenStack *s) {
     return s->top < 0;
 }
 
-static inline int64_t get_prec(TokenType t) { // precedence
+f_static_inline int64_t get_prec(const TokenType t) { // precedence
     switch (t) {
         case TOKEN_ADD: case TOKEN_SUB: return 1;
         case TOKEN_REM: case TOKEN_DIV: case TOKEN_MUL: case TOKEN_IMPLICIT_MUL: return 2;
@@ -139,7 +140,7 @@ static inline int64_t get_prec(TokenType t) { // precedence
     }
 }
 
-static inline int64_t is_right_associative(TokenType t) {
+f_static_inline int64_t is_right_associative(const TokenType t) {
     return t == TOKEN_NEG || t == TOKEN_POS || t == TOKEN_EXP || t == TOKEN_ROOT;
 }
 
@@ -203,7 +204,7 @@ do_operator: {
         !stack_empty(&op_stack) &&
         // Check for a boundary marker, operators can't reach across them
         peek(&op_stack).type != TOKEN_LPAREN &&
-        // If operator binds atleast as tight, GE
+        // If operator binds at least as tight, GE
         get_prec(peek(&op_stack).type) >= get_prec(current) &&
         // If it's the same prec, only pop when it's left associative
         !(get_prec(peek(&op_stack).type) == get_prec(current) && is_right_associative(current))

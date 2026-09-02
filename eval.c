@@ -66,11 +66,7 @@ eval_binop: {
             i++;
             break;
         }
-        case TOKEN_IMPLICIT_MUL: {
-            throwaway[sp++].value = lhs * rhs;
-            i++;
-            break;
-        }
+        case TOKEN_IMPLICIT_MUL:
         case TOKEN_MUL: {
             throwaway[sp++].value = lhs * rhs;
             i++;

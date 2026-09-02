@@ -1,12 +1,12 @@
 #include "Headers/lexer.h"
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #define likely(a) __builtin_expect(!!(a), 1)
 #define unlikely(a) __builtin_expect(!!(a), 0)
+#define f_static_inline __attribute__((__always_inline__)) static inline
 
 typedef struct {
     const char *cursor;
@@ -21,9 +21,9 @@ static bool table_initialized = false;
 
 int64_t total_tokens = 0;
 
-static inline char advance(void) {
-    char c = *S.cursor;
-    if (likely((c != '\0'))) {
+f_static_inline char advance(void) {
+    const char c = *S.cursor;
+    if (likely(c != '\0')) {
         S.cursor++;
         S.column++;
         if (c == '\n') {
@@ -37,13 +37,13 @@ static inline char advance(void) {
     return c;
 }
 
-static inline char peek(void) {
+f_static_inline char peek(void) {
     return *S.cursor;
 }
 
-static inline void skip_whitespace(void) {
+f_static_inline void skip_whitespace(void) {
     while (1) {
-        char c = peek();
+        const char c = peek();
         if (c == ' '|| c == '\t' || c == '\r') { // Purpose fallthorugh to lex_eof
             S.cursor++;
             S.column++;
