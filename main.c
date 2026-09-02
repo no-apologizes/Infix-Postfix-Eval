@@ -22,7 +22,6 @@ static Token* lexical_analysis(const char *c, const bool dump_tokens) {
 
     Token *output = malloc(sizeof(Token) * (unsigned long)total_tokens);
     if (!output) { fprintf(stderr, "Failed to allocate memory for output tokens\n"); exit(EXIT_FAILURE); }
-    if (output != NULL) { memset(output, 0, sizeof(Token) * (unsigned long)total_tokens); }
     const int64_t token_count = total_tokens;
     lexer_init(c);
 
@@ -136,7 +135,7 @@ int main(const int argc, char **argv) {
         print_tokens(postfix, out_count);
         printf("===== End of Postfix Conversion =====\n\n");
     }
-    double result = evaluate_postfix_throwaway(postfix, t, out_count);
+    const double result = evaluate_postfix_throwaway(postfix, t, out_count);
     printf("\nPostfix:\n");
     int64_t current_token = 0;
     do {

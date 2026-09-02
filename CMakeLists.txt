@@ -15,10 +15,20 @@ add_executable(infix_postfix_eval
         eval.c
 )
 
-target_compile_options(infix_postfix_eval PRIVATE
-        -O3 -march=native -std=c17 -flto
-        -Wall -Wextra -Wshadow -Wconversion -Wnull-dereference
-)
+option(QODANA_ANALYSIS "Building for Qodana static analysis, disable LTO/native flags" OFF)
+
+if(QODANA_ANALYSIS)
+    target_compile_options(infix_postfix_eval PRIVATE
+            -O0 -std=c17
+            -Wall -Wextra -Wshadow -Wconversion -Wnull-dereference
+    )
+else()
+    target_compile_options(infix_postfix_eval PRIVATE
+            -O3 -march=native -std=c17 -flto
+            -Wall -Wextra -Wshadow -Wconversion -Wnull-dereference
+    )
+endif()
+
 
 target_include_directories(infix_postfix_eval PRIVATE
         ${CMAKE_SOURCE_DIR}/Headers

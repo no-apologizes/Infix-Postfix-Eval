@@ -7,6 +7,7 @@
 #include <string.h>
 
 // Frees passed throwaway array
+// ReSharper disable once CppUseInternalLinkage
 double evaluate_postfix_throwaway(const Token *postfix, Token *throwaway, int64_t token_count) {
     if (token_count == 0) { fprintf(stderr, "0 tokens passed, lol.\n"); exit(EXIT_FAILURE);}
     assert(postfix[token_count - 1].type == TOKEN_EOF); // Fail if last token isn't EOF

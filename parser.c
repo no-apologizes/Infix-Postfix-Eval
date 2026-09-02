@@ -34,7 +34,7 @@ void resolve_arity(Token *t, const int64_t token_count) {
                 i++;
                 current = t[i].type;
             }
-            else if (preceding == TOKEN_NUM_LIT || preceding == TOKEN_RPAREN) {
+            else if (preceding == TOKEN_NUM_LIT) {
                 if (current == TOKEN_MINUS) { t[i].type = TOKEN_SUB; preceding = TOKEN_SUB; }
                 if (current == TOKEN_PLUS)  { t[i].type = TOKEN_ADD; preceding = TOKEN_ADD; }
                 i++;
@@ -60,7 +60,6 @@ Token *resolve_imp_mul(Token *token, int64_t token_count, int64_t *out_count) {
     const uint64_t buffer_size = sizeof(Token) * (unsigned long)token_count * 2;
     Token *output = malloc(buffer_size);
     if (!output) { fprintf(stderr, "Failed to allocate memory for output stack\n"); exit(EXIT_FAILURE); }
-    if (output != NULL) { memset(output, 0, buffer_size); }
 
     static void *dispatch_table[TOKEN_COUNT] = {
         [TOKEN_NUM_LIT] = &&resolve_imp,
@@ -169,7 +168,6 @@ Token *shunting_yard(Token *token, int64_t token_count, int64_t *out_count) {
     const uint64_t buffer_size = sizeof(Token) * (unsigned long)token_count;
     Token *output = malloc(buffer_size);
     if (!output) { fprintf(stderr, "Failed to allocate memory for output stack\n"); exit(EXIT_FAILURE); }
-    if (output != NULL) { memset(output, 0, buffer_size); } // No parallelized for loops :(
     TokenStack op_stack;
     op_stack.elements = malloc(buffer_size);
     if (!op_stack.elements) { fprintf(stderr, "Failed to allocate memory for operator stack\n"); exit(EXIT_FAILURE); }
